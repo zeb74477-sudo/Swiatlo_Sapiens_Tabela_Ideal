@@ -57,7 +57,11 @@ bool flashDown = false;       // flaga kierunku błysku (true = przygaszenie, fa
 bool resetTimerActive = false;// flaga informująca, że licznik resetu jest aktywny
 bool flashUsed = false;       // flaga zaznaczająca, że efekt Flasch ma się wykonać tylko raz
 
-int flashCounter = 0;         // licznik wykonanych błysków FLASH
+  int flashCounter = 0;         // licznik wykonanych błysków FLASH
+
+  // Diagnostic print rate limiting: print to Serial only once every N loop iterations
+  const unsigned int DEBUG_PRINT_INTERVAL = 10; // print every 10 loops
+  static unsigned int debugPrintCounter = 0;
 
 // --- FUNKCJE POMOCNICZE ---
 
@@ -98,6 +102,7 @@ void autoCalibrate() {
   }
 
   baseline = total / 100;                   // wyliczenie średniej wartości tła
+  if (baseline < 1) baseline = 1;           // zabezpieczenie przed dzieleniem przez zero
   long range = maxVal - minVal;             // obliczenie fluktuacji tła
   if (range < 10) range = 10;               // minimalna wartość różnicy (uniknięcie dzielenia przez zero)
 
@@ -240,58 +245,61 @@ if (brightness >= 255 && !flashUsed) {            //  jeśli osiągnięto maksim
     wdt_reset();                                  // regularne odświeżenie WDT
   }
 
-  // --- Sekcja diagnostyczna (wysyłanie danych do monitora szeregowego) ---
-  
-  
-// --- SOFT-PAD DELUX+DELUX ---
+    // --- Sekcja diagnostyczna (wysyłanie danych do monitora szeregowego) ---
+    // Rate-limited: print only every DEBUG_PRINT_INTERVAL loop iterations
+    if (++debugPrintCounter >= DEBUG_PRINT_INTERVAL) {
+      debugPrintCounter = 0;
 
-// Total
-Serial.print(" Total:");
-if (total < 10) Serial.print("   ");
-else if (total < 100) Serial.print("  ");
-else if (total < 1000) Serial.print(" ");
-Serial.print(total);
-Serial.print("\t");
+      // --- SOFT-PAD DELUX+DELUX ---
 
-// Base
-Serial.print("  Base:");
-if (baseline < 10) Serial.print("   ");
-else if (baseline < 100) Serial.print("  ");
-else if (baseline < 1000) Serial.print(" ");
-Serial.print(baseline);
-Serial.print("\t");
+      // Total
+      Serial.print(" Total:");
+      if (total < 10) Serial.print("   ");
+      else if (total < 100) Serial.print("  ");
+      else if (total < 1000) Serial.print(" ");
+      Serial.print(total);
+      Serial.print("\t");
 
-// Delta
-Serial.print("     Δ:");
-if (delta < 10) Serial.print("   ");
-else if (delta < 100) Serial.print("  ");
-else if (delta < 1000) Serial.print(" ");
-Serial.print(delta);
-Serial.print("\t");
+      // Base
+      Serial.print("  Base:");
+      if (baseline < 10) Serial.print("   ");
+      else if (baseline < 100) Serial.print("  ");
+      else if (baseline < 1000) Serial.print(" ");
+      Serial.print(baseline);
+      Serial.print("\t");
 
-// Touch
-Serial.print(" Touch:");
-Serial.print(" ");
-Serial.print(touchState);
-Serial.print("\t");
+      // Delta
+      Serial.print("     Δ:");
+      if (delta < 10) Serial.print("   ");
+      else if (delta < 100) Serial.print("  ");
+      else if (delta < 1000) Serial.print(" ");
+      Serial.print(delta);
+      Serial.print("\t");
 
-// Brt
-Serial.print("   Brt:");
-if (brightness < 10) Serial.print("   ");
-else if (brightness < 100) Serial.print("  ");
-else Serial.print(" ");
-Serial.print(brightness);
-Serial.print("\t");
+      // Touch
+      Serial.print(" Touch:");
+      Serial.print(" ");
+      Serial.print(touchState);
+      Serial.print("\t");
 
-// Fact
-Serial.print("  Fact:");
-Serial.print(" ");
-Serial.print(touchFactor, 2);
-Serial.print("\t");
+      // Brt
+      Serial.print("   Brt:");
+      if (brightness < 10) Serial.print("   ");
+      else if (brightness < 100) Serial.print("  ");
+      else Serial.print(" ");
+      Serial.print(brightness);
+      Serial.print("\t");
 
-// RST
-Serial.print("   RST:");
-Serial.println(resetTimer.available() ? " expired" : " running");
+      // Fact
+      Serial.print("  Fact:");
+      Serial.print(" ");
+      Serial.print(touchFactor, 2);
+      Serial.print("\t");
+
+      // RST
+      Serial.print("   RST:");
+      Serial.println(resetTimer.available() ? " expired" : " running");
+    }
 
 
 
