@@ -11,4 +11,9 @@ Serial: 115200
   1. Zamknij monitor szeregowy (jeśli otwarty).
   2. Spróbuj upload z wymuszeniem portu: `platformio run -e nanoatmega328 --target upload --upload-port /dev/ttyUSB0 -v`.
   3. Jeśli nadal nie działa, podczas próby uploadu naciśnij krótko przycisk RESET na płytce, aby wymusić wejście do bootloadera.
+- Komendy w terminalu PlatformiO .:
+-        pio run -e nano_115200 -t upload
+-        pio run -e nano_57600 -t upload
+- 115200  - to NOWY, szybszy Uploader, natomiast 57600 - to STARY , wolniejszy .
+- Jak nie jeden, to drugi i powinno zadziałać. 
 
